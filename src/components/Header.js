@@ -29,7 +29,8 @@ const titleStyle = {
 const filterContainerStyle = {
   display: 'flex',
   gap: '20px',
-  alignItems: 'center'
+  alignItems: 'center',
+  flexWrap: 'wrap'
 };
 
 const selectStyle = {
@@ -53,11 +54,18 @@ const labelStyle = {
   color: '#474747' // on_surface_variant
 };
 
+const checkboxGroupStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  flexWrap: 'wrap'
+};
+
 class Header extends Component {
   static contextType = StoreContext;
 
-  handleCategoryChange = (e) => {
-    this.context.productStore.setCategory(e.target.value);
+  handleCategoryChange = (category) => {
+    this.context.productStore.setCategory(category);
   }
 
   handleSortChange = (e) => {
@@ -99,16 +107,32 @@ class Header extends Component {
           <div style={dynamicFilterContainerStyle}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <label style={labelStyle}>Category:</label>
-              <select 
-                value={productStore.selectedCategory} 
-                onChange={this.handleCategoryChange}
-                style={selectStyle}
-              >
-                <option value="">All Collection</option>
+              <div style={checkboxGroupStyle}>
                 {productStore.categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <label key={cat} style={{ ...labelStyle, marginRight: 0, textTransform: 'none', letterSpacing: 'normal' }}>
+                    <input
+                      type="checkbox"
+                      checked={productStore.selectedCategories.includes(cat)}
+                      onChange={() => this.handleCategoryChange(cat)}
+                      style={{ marginRight: '6px' }}
+                    />
+                    {cat}
+                  </label>
                 ))}
-              </select>
+                {productStore.selectedCategories.length > 0 && (
+                  <button
+                    onClick={() => productStore.clearCategories()}
+                    style={{
+                      ...selectStyle,
+                      minWidth: 'unset',
+                      padding: '0.4rem 0.75rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center' }}>

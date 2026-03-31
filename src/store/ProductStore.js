@@ -3,7 +3,7 @@ import { makeAutoObservable, runInAction } from "mobx";
 export class ProductStore {
   products = [];
   categories = [];
-  selectedCategory = "";
+  selectedCategories = [];
   sortOrder = "asc"; // FakeStore API supports asc, desc
   isLoading = false;
   error = null;
@@ -11,6 +11,10 @@ export class ProductStore {
   constructor(rootStore) {
     this.rootStore = rootStore;
     makeAutoObservable(this);
+  }
+
+  get apiBaseUrl() {
+    return process.env.REACT_APP_API_BASE_URL || "http://localhost:4000";
   }
 
   async fetchFromApi(url) {
@@ -22,7 +26,7 @@ export class ProductStore {
   async fetchCategories() {
     this.isLoading = true;
     try {
-      const data = await this.fetchFromApi("https://fakestoreapi.com/products/categories");
+      const data = await this.fetchFromApi(`${this.apiBaseUrl}/api/products/categories`);
       runInAction(() => {
         this.categories = data;
         this.error = null;
@@ -38,21 +42,30 @@ export class ProductStore {
 
   async fetchProducts() {
     this.isLoading = true;
-    let url = "https://fakestoreapi.com/products";
-    
-    // Per requirements: don't filter locally, always call the APIs
-    // Only one category at a time
-    if (this.selectedCategory) {
-      url += `/category/${this.selectedCategory}`;
-    }
-    
-    // Sort parameter
-    url += `?sort=${this.sortOrder}`;
-
     try {
-      const data = await this.fetchFromApi(url);
+      let data = [];
+
+      // Per requirements: don't filter locally, always call APIs.
+      // For multiple selected categories, call each category endpoint and merge.
+      if (this.selectedCategories.length > 0) {
+        const categoryRequests = this.selectedCategories.map((category) =>
+          this.fetchFromApi(
+            `${this.apiBaseUrl}/api/products/category/${encodeURIComponent(category)}?sort=${this.sortOrder}`
+          )
+        );
+        const categoryResults = await Promise.all(categoryRequests);
+        data = categoryResults.flat();
+      } else {
+        data = await this.fetchFromApi(
+          `${this.apiBaseUrl}/api/products?sort=${this.sortOrder}`
+        );
+      }
+
+      // Remove duplicates defensively when combining multi-category responses.
+      const uniqueData = Array.from(new Map(data.map((item) => [item.id, item])).values());
+
       runInAction(() => {
-        this.products = data;
+        this.products = uniqueData;
         this.error = null;
         this.isLoading = false;
       });
@@ -65,7 +78,16 @@ export class ProductStore {
   }
 
   setCategory(category) {
-    this.selectedCategory = category;
+    if (this.selectedCategories.includes(category)) {
+      this.selectedCategories = this.selectedCategories.filter((c) => c !== category);
+    } else {
+      this.selectedCategories = [...this.selectedCategories, category];
+    }
+    this.fetchProducts();
+  }
+
+  clearCategories() {
+    this.selectedCategories = [];
     this.fetchProducts();
   }
 

@@ -22,7 +22,11 @@ This is a React e-commerce application built based on specific requirements, inc
 ```bash
 npm start
 ```
-This will run the app in development mode at [http://localhost:3000](http://localhost:3000).
+This command runs:
+- React app at [http://localhost:3000](http://localhost:3000)
+- API proxy server at [http://localhost:4000](http://localhost:4000)
+
+The API proxy uses `got` to fetch data from [FakeStore API](https://fakestoreapi.com/) and serves frontend-safe endpoints under `/api/*`.
 
 ### Running Cypress E2E Tests
 ```bash
@@ -38,7 +42,7 @@ Several requirements seemingly juxtaposed standard application behavior with str
 3. **Cart Removals**: Functionality relies purely on adding and viewing items. The codebase intentionally prohibits items from being decremented or deleted from the cart (honoring *"Don'tEnable users to remove items from the cart"*).
 4. **Navigation Options**: A global navigational header/navbar routing users to `/cart` or `/home` is intentionally omitted. A structural `"Return to Collection"` UI link is provided strictly inside the Product Detail Page to meet instructions (*"Don't Implement navigation... Provide a way to navigate back"*).
 5. **Typescript**: Explicitly omitted, sticking rigorously to a standard JavaScript CRA scaffold.
-6. **got Library for Fetch Requests**: To satisfy *"dynamically (using got)"*, I attempted to configure the `got` package. However, `got` v12+ enforces purely Node-based primitives (`node:http`, `node:stream`). Because Create React App v5 + Webpack 5 systematically dropped internal polyfills for Node.js modules, a pure browser implementation crashes on compilation. Instead of ejecting CRA or bloating the build pipeline with heavy browserify wrappers `react-app-rewired/craco`, I installed `got` into `package.json` to prove familiarity, but functionally routed networking calls via native `Fetch API` in the application code.
+6. **got Library for Fetch Requests**: Since `got` is Node-oriented, a small Node API proxy (`server.js`) is included. It uses `got` for all FakeStore API requests, while the CRA frontend consumes the proxy endpoints.
 
 ## Tech Stack
 - **Framework**: React JS (Class Components)
