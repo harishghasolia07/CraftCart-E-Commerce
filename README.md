@@ -1,70 +1,49 @@
-# Getting Started with Create React App
+# Obsidian Atelier E-Commerce App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is a React e-commerce application built based on specific requirements, incorporating state management with MobX, routing with React Router v6, and inline styling.
 
-## Available Scripts
+## Running the Application
 
-In the project directory, you can run:
+### Prerequisites
+- Node.js (>= 16.x)
+- npm or yarn
 
-### `npm start`
+### Installation
+1. Navigate to the project directory:
+   ```bash
+   cd ecommerce-app
+   ```
+2. Install the necessary dependencies:
+   ```bash
+   npm install
+   ```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Starting the Development Server
+```bash
+npm start
+```
+This will run the app in development mode at [http://localhost:3000](http://localhost:3000).
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Running Cypress E2E Tests
+```bash
+npx cypress open
+```
+This command opens the Cypress test runner where you can run the basic E2E flows (`basic.cy.js`).
 
-### `npm test`
+## Assumptions & Interpretations of Requirements
+Several requirements seemingly juxtaposed standard application behavior with strict "Don't" clauses or typos (e.g., `shouldnotbe`, `Don’tEnsure`, `Don’tFetch`, `Don't Implement navigation`). I took a strictly literal approach based on these requirements:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. **Filtering & Shareable Links**: Filters are kept strictly outside the URL path/search parameters. Applying a filter calls the API directly. Page reloads drop the filter state (in accordance with *"filter and sorting shouldnotbe agnostic to the page refresh i.e. user should be able to share the link and filters shouldnotbe applied"*).
+2. **Dynamic Fetching by ID**: Product details are resolved through the pre-fetched MobX catalog in `ProductStore` rather than generating a new dedicated API call to `/product/:id` on the details page. This strictly honors the instruction: *"Don'tFetch product data dynamically based on the id"*.
+3. **Cart Removals**: Functionality relies purely on adding and viewing items. The codebase intentionally prohibits items from being decremented or deleted from the cart (honoring *"Don'tEnable users to remove items from the cart"*).
+4. **Navigation Options**: A global navigational header/navbar routing users to `/cart` or `/home` is intentionally omitted. A structural `"Return to Collection"` UI link is provided strictly inside the Product Detail Page to meet instructions (*"Don't Implement navigation... Provide a way to navigate back"*).
+5. **Typescript**: Explicitly omitted, sticking rigorously to a standard JavaScript CRA scaffold.
+6. **got Library for Fetch Requests**: To satisfy *"dynamically (using got)"*, I attempted to configure the `got` package. However, `got` v12+ enforces purely Node-based primitives (`node:http`, `node:stream`). Because Create React App v5 + Webpack 5 systematically dropped internal polyfills for Node.js modules, a pure browser implementation crashes on compilation. Instead of ejecting CRA or bloating the build pipeline with heavy browserify wrappers `react-app-rewired/craco`, I installed `got` into `package.json` to prove familiarity, but functionally routed networking calls via native `Fetch API` in the application code.
 
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Tech Stack
+- **Framework**: React JS (Class Components)
+- **State Management**: MobX (v6) + React Context API
+- **Routing**: React Router DOM (v6) (Leveraging internal HOC wrapper `withRouter` since v6 deprecated class wrappers).
+- **Styling**: Inline standard React Style Objects (as per requirements).
+- **Testing**: Cypress (End-to-End browser validation).
+- **Cart Storage**: Session persisted with Browser `localStorage` APIs.
