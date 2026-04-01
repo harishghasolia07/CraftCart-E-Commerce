@@ -5,6 +5,8 @@ export class ProductStore {
   categories = [];
   selectedCategories = [];
   sortOrder = "asc"; // FakeStore API supports asc, desc
+  currentPage = 1;
+  pageSize = 10;
   isLoading = false;
   error = null;
 
@@ -66,6 +68,7 @@ export class ProductStore {
 
       runInAction(() => {
         this.products = uniqueData;
+        this.currentPage = 1;
         this.error = null;
         this.isLoading = false;
       });
@@ -86,6 +89,11 @@ export class ProductStore {
     this.fetchProducts();
   }
 
+  setSingleCategory(category) {
+    this.selectedCategories = category ? [category] : [];
+    this.fetchProducts();
+  }
+
   clearCategories() {
     this.selectedCategories = [];
     this.fetchProducts();
@@ -94,5 +102,20 @@ export class ProductStore {
   setSortOrder(order) {
     this.sortOrder = order;
     this.fetchProducts();
+  }
+
+  setPage(page) {
+    const totalPages = this.totalPages;
+    const nextPage = Math.max(1, Math.min(page, totalPages || 1));
+    this.currentPage = nextPage;
+  }
+
+  get totalPages() {
+    return Math.max(1, Math.ceil(this.products.length / this.pageSize));
+  }
+
+  get paginatedProducts() {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.products.slice(start, start + this.pageSize);
   }
 }

@@ -54,18 +54,11 @@ const labelStyle = {
   color: '#474747' // on_surface_variant
 };
 
-const checkboxGroupStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '10px',
-  flexWrap: 'wrap'
-};
-
 class Header extends Component {
   static contextType = StoreContext;
 
-  handleCategoryChange = (category) => {
-    this.context.productStore.setCategory(category);
+  handleCategoryChange = (e) => {
+    this.context.productStore.setSingleCategory(e.target.value);
   }
 
   handleSortChange = (e) => {
@@ -107,32 +100,16 @@ class Header extends Component {
           <div style={dynamicFilterContainerStyle}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <label style={labelStyle}>Category:</label>
-              <div style={checkboxGroupStyle}>
+              <select
+                value={productStore.selectedCategories[0] || ''}
+                onChange={this.handleCategoryChange}
+                style={selectStyle}
+              >
+                <option value="">All Collection</option>
                 {productStore.categories.map(cat => (
-                  <label key={cat} style={{ ...labelStyle, marginRight: 0, textTransform: 'none', letterSpacing: 'normal' }}>
-                    <input
-                      type="checkbox"
-                      checked={productStore.selectedCategories.includes(cat)}
-                      onChange={() => this.handleCategoryChange(cat)}
-                      style={{ marginRight: '6px' }}
-                    />
-                    {cat}
-                  </label>
+                  <option key={cat} value={cat}>{cat}</option>
                 ))}
-                {productStore.selectedCategories.length > 0 && (
-                  <button
-                    onClick={() => productStore.clearCategories()}
-                    style={{
-                      ...selectStyle,
-                      minWidth: 'unset',
-                      padding: '0.4rem 0.75rem',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
+              </select>
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center' }}>
