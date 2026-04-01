@@ -57,20 +57,20 @@ class App extends Component {
 
     return (
       <StoreContext.Provider value={this.rootStore}>
-        <div style={appStyle}>
-          <Header />
-          
-          <main style={dynamicMainStyle}>
-            <Router>
+        <Router>
+          <div style={appStyle}>
+            <Header />
+            
+            <main style={dynamicMainStyle}>
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/product/:id/details" element={<ProductDetailPage />} />
               </Routes>
-            </Router>
-          </main>
+            </main>
 
-          <Footer />
-        </div>
+            <Footer />
+          </div>
+        </Router>
       </StoreContext.Provider>
     );
   }

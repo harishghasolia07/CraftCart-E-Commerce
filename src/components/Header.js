@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { StoreContext } from '../store/StoreContext';
+import { withRouter } from '../utils/withRouter';
 
 const headerStyle = {
   position: 'sticky',
@@ -54,11 +55,85 @@ const labelStyle = {
   color: '#474747' // on_surface_variant
 };
 
+const categoryDropdownWrapStyle = {
+  position: 'relative'
+};
+
+const categoryDropdownButtonStyle = {
+  ...selectStyle,
+  minWidth: '230px',
+  textAlign: 'left',
+  cursor: 'pointer'
+};
+
+const categoryDropdownMenuStyle = {
+  position: 'absolute',
+  top: '110%',
+  left: 0,
+  zIndex: 1200,
+  width: '280px',
+  maxHeight: '260px',
+  overflowY: 'auto',
+  background: '#ffffff',
+  border: '1px solid rgba(119, 119, 119, 0.25)',
+  boxShadow: '0 10px 24px rgba(0,0,0,0.08)',
+  padding: '0.5rem'
+};
+
+const categoryOptionLabelStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  padding: '0.35rem 0.25rem',
+  fontFamily: '"Manrope", sans-serif',
+  fontSize: '0.85rem',
+  color: '#1a1c1c',
+  cursor: 'pointer'
+};
+
+const clearInlineButtonStyle = {
+  border: 'none',
+  background: 'transparent',
+  color: '#777777',
+  fontSize: '0.75rem',
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+  cursor: 'pointer',
+  padding: 0,
+  marginLeft: '8px'
+};
+
 class Header extends Component {
   static contextType = StoreContext;
 
-  handleCategoryChange = (e) => {
-    this.context.productStore.setSingleCategory(e.target.value);
+  constructor(props) {
+    super(props);
+    this.state = {
+      isCategoryOpen: false
+    };
+    this.categoryDropdownRef = React.createRef();
+  }
+
+  componentDidMount() {
+    document.addEventListener('mousedown', this.handleOutsideClick);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this.handleOutsideClick);
+  }
+
+  handleOutsideClick = (event) => {
+    if (this.categoryDropdownRef.current && !this.categoryDropdownRef.current.contains(event.target)) {
+      this.setState({ isCategoryOpen: false });
+    }
+  }
+
+  toggleCategoryDropdown = () => {
+    this.setState((prev) => ({ isCategoryOpen: !prev.isCategoryOpen }));
+  }
+
+  handleCategoryChange = (category) => {
+    this.context.productStore.setCategory(category);
   }
 
   handleSortChange = (e) => {
@@ -68,9 +143,8 @@ class Header extends Component {
   render() {
     const { productStore, uiStore } = this.context;
     
-    // Check if we are on the Home page to decide whether to show filters
-    // A simple window.location.pathname check suffices since we're using BrowserRouter
-    const isHome = window.location.pathname === '/';
+    // Use router location so header updates correctly on route changes.
+    const isHome = this.props.router.location.pathname === '/';
     const isMobile = uiStore.isMobile;
     
     const dynamicHeaderStyle = {
@@ -92,6 +166,11 @@ class Header extends Component {
       fontSize: isMobile ? '1.5rem' : '2rem'
     };
 
+    const categoryLabel =
+      productStore.selectedCategories.length > 0
+        ? `${productStore.selectedCategories.length} selected`
+        : 'All Collection';
+
     return (
       <header style={dynamicHeaderStyle}>
         <h1 style={dynamicTitleStyle}>Obsidian Atelier</h1>
@@ -100,16 +179,38 @@ class Header extends Component {
           <div style={dynamicFilterContainerStyle}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <label style={labelStyle}>Category:</label>
-              <select
-                value={productStore.selectedCategories[0] || ''}
-                onChange={this.handleCategoryChange}
-                style={selectStyle}
-              >
-                <option value="">All Collection</option>
-                {productStore.categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
+              <div style={categoryDropdownWrapStyle} ref={this.categoryDropdownRef}>
+                <button
+                  type="button"
+                  onClick={this.toggleCategoryDropdown}
+                  style={categoryDropdownButtonStyle}
+                >
+                  {categoryLabel}
+                </button>
+                {this.state.isCategoryOpen && (
+                  <div style={categoryDropdownMenuStyle}>
+                    {productStore.categories.map((cat) => (
+                      <label key={cat} style={categoryOptionLabelStyle}>
+                        <input
+                          type="checkbox"
+                          checked={productStore.selectedCategories.includes(cat)}
+                          onChange={() => this.handleCategoryChange(cat)}
+                        />
+                        {cat}
+                      </label>
+                    ))}
+                    {productStore.selectedCategories.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => productStore.clearCategories()}
+                        style={clearInlineButtonStyle}
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -130,4 +231,4 @@ class Header extends Component {
   }
 }
 
-export default observer(Header);
+export default withRouter(observer(Header));
